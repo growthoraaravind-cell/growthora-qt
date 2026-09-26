@@ -12,9 +12,21 @@ const quotationRoutes = require('./routes/quotations');
 
 const app = express();
 
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'https://growthora-qt-frontend-k38blx6w9-growthoraaravind-4160.vercel.app',
+  ...(process.env.CLIENT_ORIGIN || '').split(',').map((origin) => origin.trim()).filter(Boolean),
+]);
+
 connectDB();
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', credentials: true }));
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error(`Origin not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
 app.use(morgan('dev'));
