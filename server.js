@@ -15,14 +15,27 @@ const app = express();
 const allowedOrigins = new Set([
   'http://localhost:5173',
   'https://growthora-qt-frontend-k38blx6w9-growthoraaravind-4160.vercel.app',
+  'https://growthora-qt-frontend-kyucosbjo-growthoraaravind-4160.vercel.app',
   ...(process.env.CLIENT_ORIGIN || '').split(',').map((origin) => origin.trim()).filter(Boolean),
 ]);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+
+  try {
+    const url = new URL(origin);
+    return url.protocol === 'https:' && /^growthora-qt-frontend-[a-z0-9]+-growthoraaravind-4160\.vercel\.app$/.test(url.hostname);
+  } catch {
+    return false;
+  }
+}
 
 connectDB();
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    if (isAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error(`Origin not allowed by CORS: ${origin}`));
   },
   credentials: true,
